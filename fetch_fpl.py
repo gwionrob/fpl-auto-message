@@ -1,15 +1,18 @@
 """this module fetches fantasy premier league data for specific leagues"""
 
 from datetime import datetime
+from typing import Union
+import json
+import requests
 
 
-class fetch_data:
+class FetchData:
     """class to fetch fpl data"""
 
     def __init__(self, league: str):
-        self.league = league
+        self.league_id = league
 
-    def get_league_standings(self, position: int) -> list[str]:
+    def get_league_standings(self, position: int) -> str:
         """Get the league standings for league.
 
         Args:
@@ -22,11 +25,27 @@ class fetch_data:
 
         """
 
-        print(self.league + " " + str(position) + " places in overall ranking")
+        fantasy_api = requests.get(
+            f"https://fantasy.premierleague.com/api/leagues-classic/{self.league_id}/standings/",
+            timeout=10,
+        )
+        data = fantasy_api.text
+        data_json = json.loads(data)
+        standings_dict = data_json["standings"]["results"]
+
+        def player_stats(player: dict) -> str:
+            stat = f'{player["rank"]}. {player["player_name"]} ({player["entry_name"]}) - {player["total"]}'
+            return stat
+
+        standings = list(map(player_stats, standings_dict))
+
+        return "\n".join(standings[:position])
 
     def get_manager_of_the_month(
-        self, position: int, month: int = datetime.now().month
-    ):
+        self,
+        position: int,
+        month: Union[int, str] = datetime.now().strftime("%m"),
+    ) -> str:
         """Get the league standings for league for month selected only.
 
         Args:
@@ -40,16 +59,18 @@ class fetch_data:
 
         """
 
-        print(
-            str(position)
-            + " best managers for month "
-            + str(month)
-            + " in "
-            + self.league
-            + " is gwion"
-        )
+        return f"""top {str(position)} best managers for month
+                 {str(month)} in {self.league_id} is gwion"""
 
 
-walrus_data = fetch_data("walrus united")
+league_id = input("What is the FPL League ID?\n")
 
-print(walrus_data.get_manager_of_the_month(4))
+while True:
+    try:
+        walrus_data = FetchData(league_id)
+        print(walrus_data.get_league_standings(10))
+    except (KeyError, json.JSONDecodeError):
+        print("This League ID is invalid, please re-enter the ID: ")
+        league_id = input()
+        continue
+    break
