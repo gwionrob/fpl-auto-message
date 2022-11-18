@@ -1,4 +1,4 @@
-"""this package fetches fantasy premier league data for specific leagues"""
+"""this module fetches fantasy premier league data for specific leagues"""
 
 from datetime import datetime
 
