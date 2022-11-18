@@ -1,5 +1,4 @@
-"""this module sets out to automate the fetching of fantasy premier league data
-for specific leagues, and then send an automated update to a WhatsApp group"""
+"""this package fetches fantasy premier league data for specific leagues"""
 
 from datetime import datetime
 
