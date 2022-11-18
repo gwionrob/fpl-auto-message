@@ -32,6 +32,7 @@ class FetchData:
         data = fantasy_api.text
         data_json = json.loads(data)
         standings_dict = data_json["standings"]["results"]
+        league_name = data_json["league"]["name"]
 
         def player_stats(player: dict) -> str:
             stat = (
@@ -42,7 +43,9 @@ class FetchData:
 
         standings = list(map(player_stats, standings_dict))
 
-        return "\n".join(standings[:position])
+        return f"\n\033[1;4m{league_name} Current Standings:\033[0m\n\n" + "\n".join(
+            standings[:position]
+        )
 
     def get_manager_of_the_month(
         self,
@@ -62,8 +65,10 @@ class FetchData:
 
         """
 
-        return f"""top {str(position)} best managers for month
-                 {str(month)} in {self.league_id} is gwion"""
+        return (
+            f"top {str(position)} best managers for month "
+            f"{str(month)} in {self.league_id} is gwion"
+        )
 
 
 league_id = input("What is the FPL League ID?\n")
