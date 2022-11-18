@@ -34,7 +34,8 @@ class FetchData:
         standings_dict = data_json["standings"]["results"]
 
         def player_stats(player: dict) -> str:
-            stat = f'{player["rank"]}. {player["player_name"]} ({player["entry_name"]}) - {player["total"]}'
+            stat = f"""{player["rank"]}. {player["player_name"]}
+                     ({player["entry_name"]}) - {player["total"]}"""
             return stat
 
         standings = list(map(player_stats, standings_dict))
