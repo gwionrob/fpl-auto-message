@@ -17,7 +17,6 @@ class FetchData:
         """Get the league standings for league.
 
         Args:
-            self
             positions (int): number of positions to return
 
         Returns:
@@ -57,7 +56,6 @@ class FetchData:
         """Get the league standings for league for month selected only.
 
         Args:
-            self: class params
             positions (int): number of positions to return
             month (int/date): OPTIONAL month 1-12, if left blank, current month used
             year (int/str): OPTIONAL year, if left blank, current year used
@@ -95,13 +93,8 @@ class FetchData:
             + "\n".join(standings[:position])
         )
 
-        return player_info
-
     def get_players_in_league(self) -> list[dict[str, str]]:
         """Get the league standings for league for month selected only.
-
-        Args:
-            self: class params
 
         Returns:
             array: array containing each player id in the league_id class param
@@ -134,7 +127,6 @@ class FetchData:
         """Get the sum of passed gameweeks. If gameweek not passed, return total points.
 
         Args:
-            self: class params
             player_id (str): player fpl id
             gameweek (list): list of integers representing fpl gameweeks
 
@@ -169,7 +161,6 @@ class FetchData:
         """Get the date of each gameweek.
 
         Args:
-            self: class params
             month (int/str): OPTIONAL month 1-12, if left blank, current month used
             year (int/str): OPTIONAL year, if left blank, current year used
 
@@ -209,7 +200,22 @@ while True:
     try:
         walrus_data = FetchData(league_id)
 
-        print(walrus_data.get_manager_of_the_month(10, 11, 2022))
+        USER_CHOICE = ""
+        options = ["Current league standings", "Manager of the Month (MoM)"]
+        INPUT_MESSAGE = "Choose option?\n"
+        for index, item in enumerate(options):
+            INPUT_MESSAGE += f"{index+1}) {item}\n"
+
+        while USER_CHOICE not in map(str, range(1, len(options) + 1)):
+            if USER_CHOICE != "":
+                print(f"Please select one of the options (1-{len(options)}):")
+            USER_CHOICE = input(INPUT_MESSAGE)
+
+        if USER_CHOICE == "1":
+            print(walrus_data.get_league_standings(10))
+        elif USER_CHOICE == "2":
+            print(walrus_data.get_manager_of_the_month(10, 11, 2022))
+
     except (KeyError, json.JSONDecodeError):
         print("This League ID is invalid, please re-enter the ID: ")
         league_id = input()
