@@ -7,8 +7,8 @@ from dateutil.parser import isoparse
 import requests
 
 
-class FetchData:
-    """class to fetch fpl data"""
+class League:
+    """class representing fpl league data"""
 
     def __init__(self, league: str):
         self.league_id = league
@@ -20,7 +20,8 @@ class FetchData:
             positions (int): number of positions to return
 
         Returns:
-            array: array of length position containing the top players of the league, indexed
+            list[dict]: list containing the top players of the league as a
+            dict containing rank, player_name, entry_name and total. listed
             based on positions
 
         """
@@ -31,21 +32,14 @@ class FetchData:
         )
         data = fantasy_api.text
         data_json = json.loads(data)
-        standings_full = data_json["standings"]["results"]
-        league_name = data_json["league"]["name"]
+        standings_full = data_json["standings"]["results"][:10]
+        wanted_keys = ["rank", "player_name", "entry_name", "total"]
 
-        def player_stats(player: dict) -> str:
-            stat = (
-                f'{player["rank"]}. {player["player_name"]} '
-                f'({player["entry_name"]}) - {player["total"]}'
-            )
-            return stat
+        def player_stats(player: dict) -> dict:
+            return {key: player[key] for key in wanted_keys}
 
         standings = list(map(player_stats, standings_full))
-
-        return f"\n\033[1;4m{league_name} Current Standings:\033[0m\n\n" + "\n".join(
-            standings[:position]
-        )
+        return standings
 
     def get_manager_of_the_month(
         self,
@@ -61,43 +55,39 @@ class FetchData:
             year (int/str): OPTIONAL year, if left blank, current year used
 
         Returns:
-            array: array containing each player in the 1-positions places, indexed
-            based on positions for this month
+            list[dict]: list containing the top players of the league for the month provided.
+            These entries are dicts containing rank, player_name, entry_name and total. listed
+            based on positions
 
         """
 
-        player_info = self.get_players_in_league()
+        player_info = self.get_players_in_league()[:position]
         gameweek_dates_for_month = self.get_gameweeks_for_month(month, year)
 
         for _info in player_info:
             player_month_points = self.get_gameweek_points(
                 _info["entry"], gameweek_dates_for_month
             )
-            _info["month_points"] = str(player_month_points)
+            _info["month_points"] = player_month_points
 
-        player_info = sorted(
-            player_info, key=lambda d: int(d["month_points"]), reverse=True
-        )
+        player_info = sorted(player_info, key=lambda d: d["month_points"], reverse=True)
 
-        def player_string(player: dict) -> str:
-            stat = (
-                f'{player_info.index(player) + 1}. {player["player_name"]} '
-                f'({player["entry_name"]}) - {player["month_points"]}'
-            )
-            return stat
+        for _info in player_info:
+            _info["rank"] = player_info.index(_info) + 1
 
-        standings = list(map(player_string, player_info))
+        wanted_keys = ["rank", "player_name", "entry_name", "month_points"]
 
-        return (
-            f'\n\033[1;4m{player_info[0]["league_name"]} MoM Standings:\033[0m\n\n'
-            + "\n".join(standings[:position])
-        )
+        def player_stats(player: dict) -> dict:
+            return {key: player[key] for key in wanted_keys}
+
+        standings = list(map(player_stats, player_info))
+        return standings
 
     def get_players_in_league(self) -> list[dict[str, str]]:
         """Get the league standings for league for month selected only.
 
         Returns:
-            array: array containing each player id in the league_id class param
+            list: list containing each player id in the league_id class param
 
         """
 
@@ -131,7 +121,7 @@ class FetchData:
             gameweek (list): list of integers representing fpl gameweeks
 
         Returns:
-            int: sum of passed gameweek points
+            int: sum of gameweek points
 
         """
 
@@ -194,30 +184,30 @@ class FetchData:
         return gameweeks_for_month
 
 
-league_id = input("What is the FPL League ID?\n")
-
-while True:
-    try:
-        walrus_data = FetchData(league_id)
-
-        USER_CHOICE = ""
-        options = ["Current league standings", "Manager of the Month (MoM)"]
-        INPUT_MESSAGE = "Choose option?\n"
-        for index, item in enumerate(options):
-            INPUT_MESSAGE += f"{index+1}) {item}\n"
-
-        while USER_CHOICE not in map(str, range(1, len(options) + 1)):
-            if USER_CHOICE != "":
-                print(f"Please select one of the options (1-{len(options)}):")
-            USER_CHOICE = input(INPUT_MESSAGE)
-
-        if USER_CHOICE == "1":
-            print(walrus_data.get_league_standings(10))
-        elif USER_CHOICE == "2":
-            print(walrus_data.get_manager_of_the_month(10, 11, 2022))
-
-    except (KeyError, json.JSONDecodeError):
-        print("This League ID is invalid, please re-enter the ID: ")
-        league_id = input()
-        continue
-    break
+# league_id = input("What is the FPL League ID?\n")
+#
+# while True:
+#     try:
+#         walrus_data = FetchData(league_id)
+#
+#         USER_CHOICE = ""
+#         options = ["Current league standings", "Manager of the Month (MoM)"]
+#         INPUT_MESSAGE = "Choose option?\n"
+#         for index, item in enumerate(options):
+#             INPUT_MESSAGE += f"{index+1}) {item}\n"
+#
+#         while USER_CHOICE not in map(str, range(1, len(options) + 1)):
+#             if USER_CHOICE != "":
+#                 print(f"Please select one of the options (1-{len(options)}):")
+#             USER_CHOICE = input(INPUT_MESSAGE)
+#
+#         if USER_CHOICE == "1":
+#             print(walrus_data.get_league_standings(10))
+#         elif USER_CHOICE == "2":
+#             print(walrus_data.get_manager_of_the_month(10, 11, 2022))
+#
+#     except (KeyError, json.JSONDecodeError):
+#         print("This League ID is invalid, please re-enter the ID: ")
+#         league_id = input()
+#         continue
+#     break
