@@ -32,7 +32,7 @@ class League:
         )
         data = fantasy_api.text
         data_json = json.loads(data)
-        standings_full = data_json["standings"]["results"][:10]
+        standings_full = data_json["standings"]["results"][:position]
         wanted_keys = ["rank", "player_name", "entry_name", "total"]
 
         def player_stats(player: dict) -> dict:
